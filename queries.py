@@ -44,12 +44,12 @@ if __name__ == "__main__":
     comment_text_df = read_table("comment_text")
     post_meta_df = read_table("post_meta")
 
-    # 1. Find the date with the most top level comments
+    # # 1. Find the date with the most top level comments
     comment_count = comment_info_df.groupby('created_time').agg(
         F.countDistinct("h_id").alias("comment_count")).sort(F.desc("comment_count"))
     comment_count.show(1)  # Shows the first date
 
-    # 2. Report back the number of comments, and comment up_likes, per type, for all comments (top level and replies) made after 2018-01-10
+    # # 2. Report back the number of comments, and comment up_likes, per type, for all comments (top level and replies) made after 2018-01-10
 
     # Filter comments made after 2018-01-10
     filtered_comments = comment_info_df.filter(
@@ -64,3 +64,11 @@ if __name__ == "__main__":
     average_lengths = comment_info_df.join(comment_text_df, ['h_id'], 'left').join(post_meta_df, ['page_h_id', 'post_h_id'], 'left').groupBy(
         "post_h_id", "page_h_id").agg(F.avg(F.length("message")).alias("average_length")).sort(F.desc('average_length'))
     average_lengths.show(5, truncate=False)
+
+    most_replies = comment_info_df.filter(
+        F.col('comment_type').contains("reply")).groupBy(
+        'top_level_comment_h_id').agg(F.countDistinct('h_id').alias('num_replies')).sort(F.desc('num_replies'))
+
+    most_replies.show(5, truncate=False)
+
+    spark.stop()

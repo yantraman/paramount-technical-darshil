@@ -134,13 +134,16 @@ def transform_comment_info(input_df):
 
     # Explode the top level comments
     top_level_comments = input_df.select("page_h_id", F.col('posts.h_id').alias('post_h_id'), F.explode("posts.comments.data").alias("comments")) \
-        .select("page_h_id", "post_h_id", "comments.h_id", "comments.created_time", "comments.up_likes").withColumn('comment_type', F.lit('top_level'))
+        .select("page_h_id", "post_h_id", "comments.h_id", "comments.created_time", "comments.up_likes") \
+        .withColumn("top_level_comment_h_id", F.col('h_id')) \
+        .withColumn('comment_type', F.lit('top_level'))
 
     input_df = input_df.select("page_h_id", F.col('posts.h_id').alias('post_h_id'),  F.explode(
         "posts.comments.data").alias("comments"))
     # Explode the replies
     reply_comments = input_df.select("page_h_id", 'post_h_id', F.explode(
-        "comments.comments.data").alias("reply")).select("page_h_id", "post_h_id", "reply.h_id", "reply.created_time", "reply.up_likes").withColumn('comment_type', F.lit('reply'))
+        "comments.comments.data").alias("reply")).select(
+        "page_h_id", "post_h_id", "reply.h_id", "reply.created_time", "reply.up_likes", F.col('reply.parent.h_id').alias('top_level_comment_h_id')).withColumn('comment_type', F.lit('reply'))
 
     # Union the top level and reply comments
     all_comments = top_level_comments.union(reply_comments)
@@ -164,7 +167,7 @@ def load_table(df, table):
 
 
 if __name__ == "__main__":
-    # main()
+
     # create a SparkSession
     spark = SparkSession.builder \
         .appName("Paramount-Technical-Assessment") \
@@ -172,15 +175,17 @@ if __name__ == "__main__":
         .getOrCreate()
 
     post_meta_df = extract_post_meta()
-    transformed_post_meta_df = transform_post_meta(post_meta_df)
-    load_table(transformed_post_meta_df, "post_meta")
+    post_meta_df = transform_post_meta(post_meta_df)
+    load_table(post_meta_df, "post_meta")
 
     # comment info
     comment_info_df = extract_comment_info()
-    transformed_comment_info_df = transform_comshowment_info(comment_info_df)
-    load_table(transformed_comment_info_df, "comment_info")
+    comment_info_df = transform_comment_info(comment_info_df)
+    load_table(comment_info_df, "comment_info")
 
     # comment text
     comment_text_df = extract_comment_text()
     comment_text_df = transform_comment_text(comment_text_df)
     load_table(comment_text_df, "comment_text")
+
+    spark.stop()
