@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: paramount
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: online_communities
+    ports:
+      - "5432:5432"
