@@ -47,7 +47,9 @@ if __name__ == "__main__":
     # # 1. Find the date with the most top level comments
     comment_count = comment_info_df.groupby('created_time').agg(
         F.countDistinct("h_id").alias("comment_count")).sort(F.desc("comment_count"))
-    comment_count.show(1)  # Shows the first date
+    # Shows the first date
+    comment_count.write.csv('results/question1.csv',
+                            header=True, mode="overwrite")
 
     # # 2. Report back the number of comments, and comment up_likes, per type, for all comments (top level and replies) made after 2018-01-10
 
@@ -57,18 +59,20 @@ if __name__ == "__main__":
 
     # Group by comment type and calculate counts and sum of up_likes
     comment_stats = filtered_comments.groupBy("comment_type") \
-        .agg(F.count("*").alias("comment_count"), F.sum("up_likes").alias("total_up_likes")).show(truncate=False)
+        .agg(F.count("*").alias("comment_count"), F.sum("up_likes").alias("total_up_likes")).limit(5).write.csv('results/question2.csv', header=True, mode="overwrite")
 
     # For each page, find the average length per comment (number of characters). Include top level comments and replies.
     # What are the top 5 pages, sorted by highest average length of comment. Please provide page names, page ids, and values for average length of comment.
     average_lengths = comment_info_df.join(comment_text_df, ['h_id'], 'left').join(post_meta_df, ['page_h_id', 'post_h_id'], 'left').groupBy(
         "post_h_id", "page_h_id").agg(F.avg(F.length("message")).alias("average_length")).sort(F.desc('average_length'))
-    average_lengths.show(5, truncate=False)
+    average_lengths.limit(5).write.csv(
+        'results/question3.csv', header=True, mode="overwrite")
 
     most_replies = comment_info_df.filter(
         F.col('comment_type').contains("reply")).groupBy(
         'top_level_comment_h_id').agg(F.countDistinct('h_id').alias('num_replies')).sort(F.desc('num_replies'))
 
-    most_replies.show(5, truncate=False)
+    most_replies.limit(5).write.csv('results/question4.csv',
+                                    header=True, mode="overwrite")
 
     spark.stop()
