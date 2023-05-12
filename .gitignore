@@ -1,3 +1,4 @@
 data/comment_info_jsonl
 data/comment_text
 data/post_meta
+*.crc
