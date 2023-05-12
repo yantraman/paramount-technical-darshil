@@ -1,4 +1,4 @@
-**Paramount Technical Assessment**
+## Paramount Technical Assessment
 
 ### Architecture
 

@@ -2,7 +2,7 @@
 
 **Introduction:**
 
-Please complete the following technical assignment to the best of your abilities. The assignment is designed to assess your ability to work across a range of data types and combine them into a single queryable entity.
+Please complete the following technical assignment to the best of your abilities. The assignment is designed to assess your ability to work across a range of data types and combine them into a git single queryable entity.
 
 **Instructions:**
 
